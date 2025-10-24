@@ -6,14 +6,6 @@ Built with **Gemini AI** and **Chrome DevTools MCP**.
 
 <img src="assets/demo.gif" alt="Demo of the Person-to-Address Search Verifier in action" width="830" />
 
-## Features
-
-- Interactive chat mode with continuous conversation
-- Autonomous browser navigation and interaction
-- Structured JSON output via custom schemas
-- 27 Chrome DevTools automation tools
-- Configurable step limits and response formats
-
 ## Prerequisites
 
 - Node.js >= 20.19.0
@@ -26,85 +18,131 @@ Built with **Gemini AI** and **Chrome DevTools MCP**.
 pnpm install
 cp .env.example .env
 # Add your GEMINI_API_KEY to .env
+
+# Optionally, create your own config to override defaults
+cp .chrome-geminirc.default.json .chrome-geminirc.json
 ```
 
 ## Usage
 
-**Interactive mode:**
+**Default Interactive Mode:**
+
+Starts a new chat session using your default configuration from `.chrome-geminirc.json`.
 
 ```bash
 npm start
 ```
 
-**With initial task:**
+**Run a Task:**
+
+Executes a one-off task with your default settings.
 
 ```bash
-npm start -- "Find iPhone price on Apple's website"
+npm start -- "Find Honolulu's weather on Google"
 ```
 
-**With structured output:**
+**Using a Preset:**
+
+Executes a task using a named preset from your config file. This is the primary way to run configured, non-interactive, or schema-driven tasks.
 
 ```bash
-npm start -- --schema schemas/examples/price-schema.ts "Get MacBook Pro price"
+# This example assumes a "product-scrape" preset exists in your config
+# that sets a schema and disables interactive mode.
+npm start -- --preset product-scrape "Get the top 3 laptops from Best Buy"
 ```
 
-**Configure max steps:**
+**Scripting (Quiet Mode):**
+
+For clean JSON output suitable for piping or redirecting to a file, use `npm start --silent`.
 
 ```bash
-npm start -- --max-steps 50 "Complex research task"
-```
-
-**Non-interactive mode (exit after task):**
-
-```bash
-npm start -- --no-interactive "Quick query that exits when done"
-```
-
-**Quiet mode (suppress logs, clean JSON only):**
-
-```bash
-npm start --silent -- --no-interactive --schema schemas/examples/price-schema.ts "Get Apple stock price"
-```
-
-## Examples
-
-In interactive mode:
-
-```
-Prompt: Go to producthunt.com and get today's top 5 products
-```
-
-With schemas:
-
-```bash
-npm start -- --schema schemas/examples/price-schema.ts "Check Nintendo Switch price on Amazon"
-```
-
-For scripting (clean JSON output):
-
-```bash
-# Using npm --silent for clean output
-npm start --silent -- --no-interactive --schema schemas/examples/price-schema.ts "Get Apple stock price" > output.json
+# Using a preset and piping the clean JSON output to a file
+npm start --silent -- --preset product-scrape "Get the top 3 laptops" > output/laptops.json
 ```
 
 **Important:** When redirecting output (`>`) or piping (`|`), always use `npm start --silent` to prevent progress logs from being included in your output file or pipeline.
 
 ## Configuration
 
-**Environment (.env file):**
+Chrome Gemini CLI uses an opinionated configuration system where the config file is the single source of truth for all non-secret settings.
+
+Configuration is resolved in the following order (highest to lowest priority):
+
+1.  **CLI Flags** - For temporary, one-time overrides (presets only).
+2.  **Project Config** - `.chrome-geminirc.json` in the current directory (optional, overrides defaults).
+3.  **Default Config** - `.chrome-geminirc.default.json` (built-in, always present).
+
+### Environment Variables (`.env` file)
+
+Environment variables are used **strictly for secrets**. All other configuration (model, steps, etc.) belongs in a config file.
 
 ```env
+# .env
 GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash      # Default model
-GEMINI_THINKING_BUDGET=1024        # Default thinking budget (0 to disable, -1 for dynamic)
 ```
 
-**CLI Options:**
+### Configuration Files (Primary Method)
 
-- `--schema <file>` - TypeScript schema for structured responses
-- `--max-steps <num>` - Max steps the agent can take (default: 30)
-- `--no-interactive` - Exit after completing task
-- `--help` - Show usage
+This is the standard and recommended way to configure the CLI.
+
+**Project Config (`.chrome-geminirc.json`):**
+
+Create this file in your project's root directory. It becomes the single source of truth for how the tool should behave for that project.
+
+```json
+{
+  "interactive": true,
+  "maxSteps": 30,
+  "model": "gemini-2.5-flash",
+  "requestDelayMs": 500,
+  "schema": "",
+  "temperature": 0,
+  "thinkingBudget": 1024,
+
+  "presets": {
+    "quick": {
+      "maxSteps": 20,
+      "interactive": false
+    },
+    "research": {
+      "maxSteps": 50,
+      "thinkingBudget": 4096
+    }
+  }
+}
+```
+
+**Configuration Fields:**
+
+- `interactive` - Enable interactive chat mode after task completion
+- `maxSteps` - Maximum number of agent steps before stopping
+- `model` - Gemini model to use (e.g., `gemini-2.5-flash`, `gemini-2.5-pro`)
+- `requestDelayMs` - Delay in milliseconds between Gemini API calls to prevent rate limiting
+- `schema` - Path to a TypeScript schema file for structured JSON output
+- `temperature` - Model temperature for response randomness (0 = deterministic, 2 = maximum creativity)
+- `thinkingBudget` - Token budget for model thinking (0 = disabled, -1 = dynamic)
+- `presets` - Named configurations that can be invoked with `--preset <name>`
+
+The tool comes with a `.chrome-geminirc.default.json` file that provides sensible defaults. You can override any of these values by creating your own `.chrome-geminirc.json` file.
+
+### CLI Options
+
+The CLI is intentionally minimal, prioritizing configuration files.
+
+- `--preset <name>` - Use a named preset from your config file.
+- `--help` - Show usage information.
+
+### Using Presets
+
+Presets allow you to create named configurations for common workflows. They are defined in the `presets` object in your config file. This is the primary way to run different types of automated tasks.
+
+```bash
+# Use the "quick" preset from your config file
+npm start -- --preset quick "Find the price of an iPhone"
+
+# Use the "research" preset from your config file
+npm start -- --preset research "Discover the top 5 AI companies, and summarize the Wikipedia page of each company."
+```
 
 **Note:** Use `npm start --silent` to suppress all logs and get clean JSON output only (perfect for piping/scripting).
 

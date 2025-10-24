@@ -1,5 +1,6 @@
 import { FunctionCall, FunctionCallingConfigMode, FunctionDeclaration, GoogleGenAI, Part, Type } from '@google/genai'
 import { SYSTEM_PROMPT } from './prompts.js'
+import { sleep } from './utils.js'
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 
 export interface AgentResponse {
@@ -16,16 +17,27 @@ export class GeminiClient {
   private conversationHistory: Array<{ parts: Part[]; role: string }> = []
   private googleGenAI: GoogleGenAI
   private model: string
+  private requestDelayMs: number
   private responseSchema?: object
+  private temperature: number
   private thinkingBudget: number
 
-  constructor(apiKey: string, responseSchema?: object) {
+  constructor(
+    apiKey: string,
+    responseSchema: object | undefined,
+    model: string,
+    thinkingBudget: number,
+    requestDelayMs: number,
+    temperature: number
+  ) {
     if (!apiKey) throw new Error('Gemini API key is required. Set GEMINI_API_KEY environment variable.')
 
     this.googleGenAI = new GoogleGenAI({ apiKey })
-    this.model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+    this.model = model
+    this.requestDelayMs = requestDelayMs
     this.responseSchema = responseSchema
-    this.thinkingBudget = parseInt(process.env.GEMINI_THINKING_BUDGET || '1024', 10)
+    this.temperature = temperature
+    this.thinkingBudget = thinkingBudget
   }
 
   /**
@@ -63,16 +75,22 @@ export class GeminiClient {
 
       const functions = this.convertMCPToolsToGeminiFunctions(availableTools)
 
-      const response = await this.googleGenAI.models.generateContent({
-        config: {
-          temperature: 0,
-          thinkingConfig: { thinkingBudget: this.thinkingBudget },
-          toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.ANY } },
-          tools: [{ functionDeclarations: functions }]
-        },
-        contents: this.conversationHistory,
-        model: this.model
-      })
+      await sleep(this.requestDelayMs)
+
+      const response = await this.callGeminiWithTimeout(
+        () =>
+          this.googleGenAI.models.generateContent({
+            config: {
+              temperature: this.temperature,
+              thinkingConfig: { thinkingBudget: this.thinkingBudget },
+              toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.ANY } },
+              tools: [{ functionDeclarations: functions }]
+            },
+            contents: this.conversationHistory,
+            model: this.model
+          }),
+        60000
+      )
 
       const candidate = response.candidates?.[0]
 
@@ -95,11 +113,17 @@ export class GeminiClient {
 
           // If a response schema is configured, request structured output.
           if (this.responseSchema) {
-            const structuredResponse = await this.googleGenAI.models.generateContent({
-              config: { responseMimeType: 'application/json', responseSchema: this.responseSchema },
-              contents: `Based on your analysis, provide a structured JSON response according to the schema:\n\n${answerText}`,
-              model: this.model
-            })
+            await sleep(this.requestDelayMs)
+
+            const structuredResponse = await this.callGeminiWithTimeout(
+              () =>
+                this.googleGenAI.models.generateContent({
+                  config: { responseMimeType: 'application/json', responseSchema: this.responseSchema },
+                  contents: `Based on your analysis, provide a structured JSON response according to the schema:\n\n${answerText}`,
+                  model: this.model
+                }),
+              60000
+            )
             const structuredAnswer = JSON.parse(structuredResponse.text ?? '{}')
 
             return { answer: structuredAnswer, type: 'answer' }
@@ -149,6 +173,18 @@ export class GeminiClient {
     })
 
     return this.continueAgent(availableTools)
+  }
+
+  /**
+   * Call Gemini API with a timeout to prevent hanging indefinitely.
+   */
+  private async callGeminiWithTimeout<T>(apiCall: () => Promise<T>, timeoutMs: number): Promise<T> {
+    return Promise.race([
+      apiCall(),
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`Gemini API call timed out after ${timeoutMs}ms`)), timeoutMs)
+      )
+    ])
   }
 
   /**

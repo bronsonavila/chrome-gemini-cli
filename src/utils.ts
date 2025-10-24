@@ -20,7 +20,7 @@ export const parseCliArguments = (
   const remainingArguments: string[] = []
 
   // Flags that are known to be boolean (don't take a value).
-  const booleanFlags = ['--no-interactive', '--help', '-h']
+  const booleanFlags = ['--help', '-h']
 
   let index = 0
 
@@ -53,36 +53,6 @@ export const parseCliArguments = (
   }
 
   return { cliFlags, remainingArguments }
-}
-
-/**
- * Parse a string value as a positive integer.
- *
- * @param value - String value to parse
- * @param defaultValue - Default value to return if parsing fails or value is undefined
- * @param parameterName - Name of the parameter for error messages (default: 'value')
- * @returns Parsed positive integer
- * @throws Error if value is not a positive integer
- *
- * @example
- * ```
- * parsePositiveInteger('42', 10) // Returns 42
- * parsePositiveInteger(undefined, 10) // Returns 10
- * parsePositiveInteger('0', 10, 'count') // Throws: 'count must be a positive number'
- * ```
- */
-export const parsePositiveInteger = (
-  value: string | undefined,
-  defaultValue: number,
-  parameterName: string = 'value'
-): number => {
-  if (!value) return defaultValue
-
-  const parsed = parseInt(value, 10)
-
-  if (isNaN(parsed) || parsed < 1) throw new Error(`${parameterName} must be a positive number`)
-
-  return parsed
 }
 
 /**
@@ -157,3 +127,16 @@ export const printBox = (title: string, content: string, useError = false): void
   printer(wrapped)
   printer('='.repeat(terminalWidth))
 }
+
+/**
+ * Sleep for a specified number of milliseconds.
+ *
+ * @param milliseconds - Number of milliseconds to sleep
+ * @returns Promise that resolves after the specified delay
+ *
+ * @example
+ * ```
+ * await sleep(1000) // Sleep for 1 second
+ * ```
+ */
+export const sleep = (milliseconds: number): Promise<void> => new Promise(resolve => setTimeout(resolve, milliseconds))

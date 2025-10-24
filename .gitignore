@@ -5,6 +5,9 @@ node_modules/
 # Environment
 .env
 
+# Configuration
+.chrome-geminirc.json
+
 # User schemas (but not examples)
 schemas/*
 !schemas/examples/
@@ -12,5 +15,7 @@ schemas/*
 # OS
 *.DS_Store
 
-# Temporary files
+# Output and temporary files
+output/
 temp/
+tmp/

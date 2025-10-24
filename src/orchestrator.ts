@@ -23,9 +23,25 @@ export class Orchestrator {
   private maxSteps: number
   private mcpClient: MCPClient
 
-  constructor(geminiApiKey: string, responseSchema?: object, maxSteps: number = 30) {
-    this.mcpClient = new MCPClient()
-    this.geminiClient = new GeminiClient(geminiApiKey, responseSchema)
+  constructor(
+    geminiApiKey: string,
+    responseSchema: object | undefined,
+    maxSteps: number,
+    model: string,
+    thinkingBudget: number,
+    requestDelayMs: number,
+    temperature: number,
+    isSilent: boolean = false
+  ) {
+    this.mcpClient = new MCPClient(isSilent)
+    this.geminiClient = new GeminiClient(
+      geminiApiKey,
+      responseSchema,
+      model,
+      thinkingBudget,
+      requestDelayMs,
+      temperature
+    )
     this.maxSteps = maxSteps
   }
 

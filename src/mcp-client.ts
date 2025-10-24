@@ -9,7 +9,12 @@ import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 export class MCPClient {
   private client: Client | null = null
   private connected: boolean = false
+  private isSilent: boolean
   private transport: null | StdioClientTransport = null
+
+  constructor(isSilent: boolean = false) {
+    this.isSilent = isSilent
+  }
 
   /**
    * Call any MCP tool by name with arguments.
@@ -56,7 +61,13 @@ export class MCPClient {
     try {
       console.log('Connecting to chrome-devtools-mcp server...')
 
-      this.transport = new StdioClientTransport({ args: ['chrome-devtools-mcp@latest'], command: 'npx' })
+      const transportOptions: { args: string[]; command: string; stderr?: 'ignore' | 'inherit' } = {
+        args: ['chrome-devtools-mcp@latest'],
+        command: 'npx',
+        stderr: this.isSilent ? 'ignore' : 'inherit'
+      }
+
+      this.transport = new StdioClientTransport(transportOptions)
 
       this.client = new Client({ name: 'gemini-browser-client', version: '1.0.0' }, { capabilities: {} })
 

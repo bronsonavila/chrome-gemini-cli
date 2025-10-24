@@ -2,15 +2,9 @@
 
 import * as readline from 'readline'
 import * as dotenv from 'dotenv'
+import { resolveConfig, type UserConfig } from './config.js'
 import { Orchestrator } from './orchestrator.js'
-import {
-  getTerminalWidth,
-  parseCliArguments,
-  parsePositiveInteger,
-  printBox,
-  printSeparator,
-  validateEnvironmentVariable
-} from './utils.js'
+import { getTerminalWidth, parseCliArguments, printBox, printSeparator, validateEnvironmentVariable } from './utils.js'
 
 // CONSTANTS
 
@@ -22,34 +16,31 @@ Chrome Gemini CLI - AI Browser Automation
 An interactive CLI for browser automation powered by Gemini AI and Chrome DevTools.
 
 Usage:
-  npm start                                Start interactive chat mode
-  npm start -- "task description"          Execute a task, then enter chat mode
-  npm start -- --schema schema.ts "task"   Use structured response schema
+  npm start                                    Start interactive chat mode
+  npm start -- "task description"              Execute a task, then enter chat mode
+  npm start -- --preset <preset_name> "task"   Use a named preset from your config
 
 Options:
-  --schema <file>      Path to TypeScript schema file for structured responses
-  --max-steps <num>    Maximum steps the AI can take per task (default: 30)
-  --no-interactive     Exit after completing task (don't enter interactive mode)
-  --help, -h           Show this help message
+  --preset <name>   Use a named preset from your config file
+  --help, -h        Show this help message
+
+Configuration:
+  Default:          .chrome-geminirc.default.json (built-in defaults)
+  Custom:           .chrome-geminirc.json (optional, overrides defaults)
 
 Environment:
-  GEMINI_API_KEY           Your Gemini API key (required)
-                           Get one at: https://aistudio.google.com/apikey
-  GEMINI_MODEL             Model to use (optional, defaults to gemini-2.5-flash)
-  GEMINI_THINKING_BUDGET   Thinking budget in tokens (optional, defaults to 1024)
+  GEMINI_API_KEY    Your Gemini API key (required)
+                    Get one at: https://aistudio.google.com/apikey
 
 Examples:
   npm start
   npm start -- "Find the price of the latest iPhone on Apple's website"
-  npm start -- "Search for React tutorials and summarize the top 3 results"
-  npm start -- --schema schemas/examples/price-schema.ts "Get the price of the latest MacBook Pro on Apple's website"
-  npm start -- --max-steps 50 "Complex research task"
-  npm start -- --no-interactive "Quick one-off query that exits when done"
-  npm start --silent -- --no-interactive --schema schemas/examples/price-schema.ts "Get price" > output.json
+  npm start -- --preset quick "Search for React tutorials"
+  npm start --silent -- --preset product-scrape "Get laptop prices" > output.json
 
 Interactive Commands:
-  exit, quit         Exit the program
-  help               Show help message
+  exit, quit        Exit the program
+  help              Show help message
 
 Schema Example (schemas/examples/price-schema.ts):
   import { Type } from '@google/genai'
@@ -73,8 +64,10 @@ interface ParsedConfig {
   interactive: boolean
   maxSteps: number
   model: string
+  requestDelayMs: number
   schema?: object
   schemaPath?: string
+  temperature: number
   thinkingBudget: number
 }
 
@@ -212,22 +205,40 @@ async function main(): Promise<void> {
   if (cliFlags.has('--help') || cliFlags.has('-h')) return showUsage(), void process.exit(0)
 
   try {
+    // Build CLI config from flags.
+    const cliConfig: UserConfig = {}
+
+    // Resolve configuration from all sources.
+    const resolvedConfig = resolveConfig({ cliConfig, presetName: cliFlags.get('--preset') })
+
+    // Build final parsed config.
     const config: ParsedConfig = {
       apiKey: validateApiKey(),
       initialTask: remainingArguments.length > 0 ? remainingArguments.join(' ') : undefined,
-      interactive: !cliFlags.has('--no-interactive'),
-      maxSteps: parsePositiveInteger(cliFlags.get('--max-steps'), 30, '--max-steps'),
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-      schema: cliFlags.has('--schema') ? await loadSchema(cliFlags.get('--schema')!) : undefined,
-      schemaPath: cliFlags.get('--schema'),
-      thinkingBudget: parseInt(process.env.GEMINI_THINKING_BUDGET || '1024', 10)
+      interactive: resolvedConfig.interactive,
+      maxSteps: resolvedConfig.maxSteps,
+      model: resolvedConfig.model,
+      requestDelayMs: resolvedConfig.requestDelayMs,
+      schema: resolvedConfig.schema ? await loadSchema(resolvedConfig.schema) : undefined,
+      schemaPath: resolvedConfig.schema,
+      temperature: resolvedConfig.temperature,
+      thinkingBudget: resolvedConfig.thinkingBudget
     }
 
     if (config.schemaPath) console.log(`Loaded response schema from: ${config.schemaPath}`)
 
     displayBanner(config)
 
-    const orchestrator = new Orchestrator(config.apiKey, config.schema, config.maxSteps)
+    const orchestrator = new Orchestrator(
+      config.apiKey,
+      config.schema,
+      config.maxSteps,
+      config.model,
+      config.thinkingBudget,
+      config.requestDelayMs,
+      config.temperature,
+      IS_SILENT
+    )
 
     await orchestrator.connect()
 
