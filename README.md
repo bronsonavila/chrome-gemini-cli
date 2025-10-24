@@ -146,12 +146,6 @@ npm start -- --preset research "Discover the top 5 AI companies, and summarize t
 
 **Note:** Use `npm start --silent` to suppress all logs and get clean JSON output only (perfect for piping/scripting).
 
-**Agent Step Guidelines:**
-
-- Simple tasks: 10-20 steps
-- Medium tasks: 30-50 steps
-- Complex tasks: 50-100+ steps
-
 ## Schemas
 
 Schema files must:
