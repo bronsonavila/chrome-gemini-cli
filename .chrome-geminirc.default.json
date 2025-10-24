@@ -6,7 +6,7 @@
   "maxSteps": 30,
   "thinkingBudget": 1024,
   "interactive": true,
-  "requestDelayMs": 500,
+  "requestDelayMs": 1000,
   "temperature": 0,
   "schema": "",
 

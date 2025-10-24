@@ -94,7 +94,7 @@ Create this file in your project's root directory. It becomes the single source 
   "interactive": true,
   "maxSteps": 30,
   "model": "gemini-2.5-flash",
-  "requestDelayMs": 500,
+  "requestDelayMs": 1000,
   "schema": "",
   "temperature": 0,
   "thinkingBudget": 1024,
