@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+
+# User schemas (but not examples)
+schemas/*
+!schemas/examples/
+
+# OS
+*.DS_Store
+
+# Temporary files
+temp/
