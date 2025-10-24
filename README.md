@@ -4,7 +4,11 @@ CLI for AI-powered browser automation. Tell the agent what you want, and it auto
 
 Built with **Gemini AI** and **Chrome DevTools MCP**.
 
-<img src="assets/demo.gif" alt="Demo of the Person-to-Address Search Verifier in action" width="830" />
+## Demo
+
+> Go to Best Buy and search for '4K TV'. Next, apply the following filters: made by Sony, on sale, 65-74 inches, and rated 4 stars or higher. Then, set the max price to $1000. Finally, sort by 'Best Selling' and list the top 3 displayed results.
+
+<img src="assets/demo.gif" alt="Demo of Chrome Gemini CLI searching Best Buy for 4K TVs with filters" />
 
 ## Prerequisites
 
@@ -27,7 +31,7 @@ cp .chrome-geminirc.default.json .chrome-geminirc.json
 
 **Default Interactive Mode:**
 
-Starts a new chat session using your default configuration from `.chrome-geminirc.json`.
+Starts a chat session.
 
 ```bash
 npm start
@@ -35,7 +39,7 @@ npm start
 
 **Run a Task:**
 
-Executes a one-off task with your default settings.
+Executes a one-off task with default settings.
 
 ```bash
 npm start -- "Find Honolulu's weather on Google"
@@ -43,51 +47,51 @@ npm start -- "Find Honolulu's weather on Google"
 
 **Using a Preset:**
 
-Executes a task using a named preset from your config file. This is the primary way to run configured, non-interactive, or schema-driven tasks.
+Executes a task using a named preset for configured, non-interactive, or schema-driven tasks.
 
 ```bash
-# This example assumes a "product-scrape" preset exists in your config
+# This assumes a "product-scrape" preset exists in your config
 # that sets a schema and disables interactive mode.
 npm start -- --preset product-scrape "Get the top 3 laptops from Best Buy"
 ```
 
 **Scripting (Quiet Mode):**
 
-For clean JSON output suitable for piping or redirecting to a file, use `npm start --silent`.
+For clean JSON output suitable for piping or redirecting, use `npm start --silent`.
 
 ```bash
-# Using a preset and piping the clean JSON output to a file
+# Using a preset and piping output to a file
 npm start --silent -- --preset product-scrape "Get the top 3 laptops" > output/laptops.json
 ```
 
-**Important:** When redirecting output (`>`) or piping (`|`), always use `npm start --silent` to prevent progress logs from being included in your output file or pipeline.
+**Important:** When redirecting output (`>`) or piping (`|`), always use `npm start --silent` to prevent progress logs from appearing in your output.
 
 ## Configuration
 
-Chrome Gemini CLI uses an opinionated configuration system where the config file is the single source of truth for all non-secret settings.
+Chrome Gemini CLI uses an opinionated configuration system where the config file controls all non-secret settings.
 
-Configuration is resolved in the following order (highest to lowest priority):
+Configuration is resolved in this order (highest to lowest priority):
 
-1.  **CLI Flags** - For temporary, one-time overrides (presets only).
-2.  **Project Config** - `.chrome-geminirc.json` in the current directory (optional, overrides defaults).
-3.  **Default Config** - `.chrome-geminirc.default.json` (built-in, always present).
+1. **CLI Flags** - For temporary, one-time overrides (presets only).
+2. **Project Config** - `.chrome-geminirc.json` in the current directory (optional, overrides defaults).
+3. **Default Config** - `.chrome-geminirc.default.json` (built-in, always present).
 
 ### Environment Variables (`.env` file)
 
-Environment variables are used **strictly for secrets**. All other configuration (model, steps, etc.) belongs in a config file.
+Environment variables are used **strictly for secrets**. All other configuration belongs in a config file.
 
 ```env
 # .env
 GEMINI_API_KEY=your_key_here
 ```
 
-### Configuration Files (Primary Method)
+### Configuration Files
 
-This is the standard and recommended way to configure the CLI.
+This is the standard way to configure the CLI.
 
 **Project Config (`.chrome-geminirc.json`):**
 
-Create this file in your project's root directory. It becomes the single source of truth for how the tool should behave for that project.
+Create this in your project's root directory. It controls how the tool should behave.
 
 ```json
 {
@@ -123,32 +127,32 @@ Create this file in your project's root directory. It becomes the single source 
 - `thinkingBudget` - Token budget for model thinking (0 = disabled, -1 = dynamic)
 - `presets` - Named configurations that can be invoked with `--preset <name>`
 
-The tool comes with a `.chrome-geminirc.default.json` file that provides sensible defaults. You can override any of these values by creating your own `.chrome-geminirc.json` file.
+The tool comes with `.chrome-geminirc.default.json` that provides sensible defaults. You can override any values by creating `.chrome-geminirc.json`.
 
 ### CLI Options
 
 The CLI is intentionally minimal, prioritizing configuration files.
 
-- `--preset <name>` - Use a named preset from your config file.
+- `--preset <name>` - Use a named preset.
 - `--help` - Show usage information.
 
 ### Using Presets
 
-Presets allow you to create named configurations for common workflows. They are defined in the `presets` object in your config file. This is the primary way to run different types of automated tasks.
+Presets allow you to create named configurations for common workflows. They are defined in the `presets` object for running automated tasks.
 
 ```bash
-# Use the "quick" preset from your config file
+# Use the "quick" preset
 npm start -- --preset quick "Find the price of an iPhone"
 
-# Use the "research" preset from your config file
+# Use the "research" preset
 npm start -- --preset research "Discover the top 5 AI companies, and summarize the Wikipedia page of each company."
 ```
 
-**Note:** Use `npm start --silent` to suppress all logs and get clean JSON output only (perfect for piping/scripting).
+**Note:** Use `npm start --silent` to suppress all logs and get clean JSON output (perfect for piping/scripting).
 
 ## Schemas
 
-Schema files must:
+Schema files for [structured output](https://ai.google.dev/gemini-api/docs/structured-output) must:
 
 - Be TypeScript (.ts) files
 - Import `Type` from `@google/genai`
@@ -170,4 +174,4 @@ export const priceSchema = {
 }
 ```
 
-Add your own schemas in `schemas/` directory (git-ignored). See `schemas/examples/` for more.
+Add your own schemas in `schemas/` directory (git-ignored). See `schemas/examples/` for examples.
