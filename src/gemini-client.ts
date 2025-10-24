@@ -206,7 +206,7 @@ export class GeminiClient {
         properties: {
           answer: {
             description:
-              'The actual information you found from browsing the web (stock prices, weather, news, etc.). This MUST contain real data/results from websites. NEVER include refusals like "I cannot provide", "I don\'t have access", or "my tools don\'t support". If you call this function, it means you successfully browsed and found the answer. FORMAT YOUR ANSWER FOR READABILITY: Use markdown formatting (headers with **, bullet points with •, numbered lists), line breaks between sections, and clear structure. For multiple items, use lists with one item per line. For single facts, use clear concise sentences. Make it easy to read and scan.',
+              'The actual information you found from browsing the web (stock prices, weather, news, etc.). This MUST contain real data/results from websites. NEVER include refusals like "I cannot provide", "I don\'t have access", or "my tools don\'t support". If you call this function, it means you successfully browsed and found the answer. FORMAT YOUR ANSWER FOR READABILITY: Use markdown formatting (bullet points with •, numbered lists), line breaks between sections, and clear structure. For multiple items, use lists with one item per line. For single facts, use clear concise sentences. Make it easy to read and scan.',
             type: Type.STRING
           }
         },

@@ -86,8 +86,7 @@ NAVIGATION STRATEGY:
 FINISHING:
 - When you have the information needed to answer → call provide_answer
 - Format your answer for MAXIMUM READABILITY:
-  * Use markdown formatting (headers, bold, lists)
-  * Use bullet points (•) or numbered lists for multiple items
+  * Use markdown formatting (bullet points with •, numbered lists)
   * Use line breaks to separate distinct pieces of information
   * For prices/products: Use clear list format with one item per line
   * For comparisons: Use tables or structured lists
