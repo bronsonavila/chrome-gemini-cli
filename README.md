@@ -1,6 +1,6 @@
 # Chrome Gemini CLI
 
-Agentic CLI for AI-powered browser automation. Tell the agent what you want, and it autonomously navigates, clicks, fills forms, and extracts data.
+CLI for AI-powered browser automation. Tell the agent what you want, and it autonomously navigates, clicks, fills forms, and extracts data.
 
 Built with **Gemini AI** and **Chrome DevTools MCP**.
 

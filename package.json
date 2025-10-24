@@ -1,6 +1,6 @@
 {
   "name": "chrome-gemini-cli",
-  "description": "Agentic CLI for autonomous browser automation using Gemini AI and Chrome DevTools MCP.",
+  "description": "CLI for autonomous browser automation using Gemini AI and Chrome DevTools MCP.",
   "version": "1.0.0",
   "type": "module",
   "bin": {
