@@ -31,6 +31,7 @@ export class Orchestrator {
     thinkingBudget: number,
     requestDelayMs: number,
     temperature: number,
+    systemPrompt: string,
     isSilent: boolean = false
   ) {
     this.mcpClient = new MCPClient(isSilent)
@@ -40,7 +41,8 @@ export class Orchestrator {
       model,
       thinkingBudget,
       requestDelayMs,
-      temperature
+      temperature,
+      systemPrompt
     )
     this.maxSteps = maxSteps
   }

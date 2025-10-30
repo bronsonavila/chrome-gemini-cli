@@ -123,6 +123,7 @@ Create this in your project's root directory. It controls how the tool should be
 - `model` - Gemini model to use (e.g., `gemini-2.5-flash`, `gemini-2.5-pro`)
 - `requestDelayMs` - Delay in milliseconds between Gemini API calls to prevent rate limiting
 - `schema` - Path to a TypeScript schema file for structured JSON output
+- `systemPrompt` - Path to a markdown file with custom system prompt instructions
 - `temperature` - Model temperature for response randomness (0 = deterministic, 2 = maximum creativity)
 - `thinkingBudget` - Token budget for model thinking (0 = disabled, -1 = dynamic)
 - `presets` - Named configurations that can be invoked with `--preset <name>`

@@ -15,6 +15,7 @@ interface BaseConfig {
   model?: string
   requestDelayMs?: number
   schema?: string
+  systemPrompt?: string
   temperature?: number
   thinkingBudget?: number
 }
@@ -27,6 +28,7 @@ export interface UserConfig extends BaseConfig {
 
 export interface ResolvedConfig extends Required<Omit<BaseConfig, 'schema'>> {
   schema?: string
+  systemPrompt?: string
 }
 
 // CONFIG LOADERS
@@ -93,6 +95,7 @@ export function mergeConfigs(...configs: Array<null | UserConfig>): UserConfig {
     if (config.requestDelayMs !== undefined) merged.requestDelayMs = config.requestDelayMs
     if (config.temperature !== undefined) merged.temperature = config.temperature
     if (config.schema !== undefined) merged.schema = config.schema
+    if (config.systemPrompt !== undefined) merged.systemPrompt = config.systemPrompt
 
     // Merge presets.
     if (config.presets) {
@@ -152,6 +155,7 @@ export function resolveConfig(options: { cliConfig: UserConfig; presetName?: str
     model: merged.model!,
     requestDelayMs: merged.requestDelayMs!,
     schema: merged.schema,
+    systemPrompt: merged.systemPrompt,
     temperature: merged.temperature!,
     thinkingBudget: merged.thinkingBudget!
   }

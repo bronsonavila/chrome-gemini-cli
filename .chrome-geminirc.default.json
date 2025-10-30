@@ -9,6 +9,7 @@
   "requestDelayMs": 1000,
   "temperature": 0,
   "schema": "",
+  "systemPrompt": "prompts/system.default.md",
 
   "presets": {
     "quick": {

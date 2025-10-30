@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import * as fs from 'fs'
 import * as readline from 'readline'
 import * as dotenv from 'dotenv'
 import { resolveConfig, type UserConfig } from './config.js'
@@ -67,6 +68,7 @@ interface ParsedConfig {
   requestDelayMs: number
   schema?: object
   schemaPath?: string
+  systemPrompt: string
   temperature: number
   thinkingBudget: number
 }
@@ -179,6 +181,22 @@ async function loadSchema(schemaPath: string): Promise<object> {
 }
 
 /**
+ * Load and validate a markdown file.
+ */
+function loadPrompt(promptPath: string): string {
+  try {
+    const absolutePath = promptPath.startsWith('/') ? promptPath : `${process.cwd()}/${promptPath}`
+    const prompt = fs.readFileSync(absolutePath, 'utf-8')
+
+    if (!prompt) throw new Error('No prompt found. The file is empty.')
+
+    return prompt
+  } catch (error) {
+    throw new Error(`Failed to load prompt from ${promptPath}: ${(error as Error).message}`)
+  }
+}
+
+/**
  * Display the usage/help text.
  */
 function showUsage(): void {
@@ -221,6 +239,7 @@ async function main(): Promise<void> {
       requestDelayMs: resolvedConfig.requestDelayMs,
       schema: resolvedConfig.schema ? await loadSchema(resolvedConfig.schema) : undefined,
       schemaPath: resolvedConfig.schema,
+      systemPrompt: resolvedConfig.systemPrompt ? loadPrompt(resolvedConfig.systemPrompt) : '',
       temperature: resolvedConfig.temperature,
       thinkingBudget: resolvedConfig.thinkingBudget
     }
@@ -237,6 +256,7 @@ async function main(): Promise<void> {
       config.thinkingBudget,
       config.requestDelayMs,
       config.temperature,
+      config.systemPrompt,
       IS_SILENT
     )
 

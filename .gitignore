@@ -12,6 +12,10 @@ node_modules/
 schemas/*
 !schemas/examples/
 
+# User prompts (but not the default)
+prompts/*
+!prompts/system.default.md
+
 # OS
 *.DS_Store
 

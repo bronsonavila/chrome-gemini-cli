@@ -1,5 +1,4 @@
 import { FunctionCall, FunctionCallingConfigMode, FunctionDeclaration, GoogleGenAI, Part, Type } from '@google/genai'
-import { SYSTEM_PROMPT } from './prompts.js'
 import { sleep } from './utils.js'
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 
@@ -19,6 +18,7 @@ export class GeminiClient {
   private model: string
   private requestDelayMs: number
   private responseSchema?: object
+  private systemPrompt: string
   private temperature: number
   private thinkingBudget: number
 
@@ -28,7 +28,8 @@ export class GeminiClient {
     model: string,
     thinkingBudget: number,
     requestDelayMs: number,
-    temperature: number
+    temperature: number,
+    systemPrompt: string
   ) {
     if (!apiKey) throw new Error('Gemini API key is required. Set GEMINI_API_KEY environment variable.')
 
@@ -36,6 +37,7 @@ export class GeminiClient {
     this.model = model
     this.requestDelayMs = requestDelayMs
     this.responseSchema = responseSchema
+    this.systemPrompt = systemPrompt
     this.temperature = temperature
     this.thinkingBudget = thinkingBudget
   }
@@ -164,11 +166,7 @@ export class GeminiClient {
     this.conversationHistory = []
 
     this.conversationHistory.push({
-      parts: [
-        {
-          text: `${SYSTEM_PROMPT}\n\nUser: "${userQuery}"\n\nYour FIRST action: Call navigate_page RIGHT NOW. DO NOT call provide_answer to refuse a request or claim you lack access to data. You have FULL browser access to the web. You MUST browse first, then provide what you found. REFUSALS ARE FORBIDDEN. If the user asks for stock prices, weather, news, or ANY web data - navigate to a website and GET IT.`
-        }
-      ],
+      parts: [{ text: `${this.systemPrompt}\n\nUser: "${userQuery}"` }],
       role: 'user'
     })
 
