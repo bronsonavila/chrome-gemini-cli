@@ -162,8 +162,8 @@ export class Orchestrator {
       const toolName = functionCall.name
       const args = functionCall.args || {}
 
-      console.log(`\n→ Calling tool: ${toolName}`)
-      console.log(`  Arguments: ${JSON.stringify(args, null, 2)}`)
+      const argsString = Object.keys(args).length > 0 ? ` with args: ${JSON.stringify(args)}` : ''
+      console.log(`\n→ Calling tool: ${toolName}${argsString}`)
 
       try {
         if (typeof toolName !== 'string') throw new Error('Tool name is not a string')
@@ -192,14 +192,13 @@ export class Orchestrator {
         const result = await this.mcpClient.callTool(toolName, args)
         const resultString = this.formatToolResult(result)
 
-        console.log(`✓ Tool completed`)
-        console.log(`  Result preview: ${resultString.substring(0, 200)}${resultString.length > 200 ? '...' : ''}`)
+        console.log(`✓ Tool completed: ${toolName}`)
 
         results.push({ result: String(resultString), toolName: String(toolName) })
       } catch (error) {
         const errorMessage = `Error: ${(error as Error).message}`
 
-        console.error(`✗ Tool failed: ${errorMessage}`)
+        console.error(`✗ Tool failed: ${toolName} (${errorMessage})`)
 
         results.push({ result: String(errorMessage), toolName: String(toolName) })
       }

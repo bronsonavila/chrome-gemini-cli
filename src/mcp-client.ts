@@ -23,8 +23,6 @@ export class MCPClient {
     this.ensureConnected()
 
     try {
-      console.log(`Calling tool: ${name}`)
-
       const result = await this.client!.callTool({ arguments: args, name })
 
       return result
