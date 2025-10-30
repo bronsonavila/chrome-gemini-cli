@@ -6,7 +6,7 @@ Built with **Gemini AI** and **Chrome DevTools MCP**.
 
 ## Demo
 
-> Go to Best Buy and search for '4K TV'. Next, apply the following filters: made by Sony, on sale, 65-74 inches, and rated 4 stars or higher. Then, set the max price to $1000. Finally, sort by 'Best Selling' and list the top 3 displayed results.
+> Go to Best Buy and search for '4K TV'. Next, apply the following filters: made by Sony, on sale, 65-74 inches, and rated 4 stars or higher. Then, set the max price to $1000. Finally, sort by 'Best Selling' and list only the results that can be added to the cart.
 
 <img src="assets/demo.gif" alt="Demo of Chrome Gemini CLI searching Best Buy for 4K TVs with filters" />
 
