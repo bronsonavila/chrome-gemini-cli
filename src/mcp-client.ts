@@ -2,6 +2,10 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 
+export interface MCPClientConfig {
+  isSilent?: boolean
+}
+
 /**
  * MCP Client for Chrome DevTools automation.
  * Provides a simple interface to connect to MCP servers and call tools.
@@ -12,7 +16,9 @@ export class MCPClient {
   private isSilent: boolean
   private transport: null | StdioClientTransport = null
 
-  constructor(isSilent: boolean = false) {
+  constructor(config: MCPClientConfig = {}) {
+    const { isSilent = false } = config
+
     this.isSilent = isSilent
   }
 

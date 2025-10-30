@@ -248,17 +248,17 @@ async function main(): Promise<void> {
 
     displayBanner(config)
 
-    const orchestrator = new Orchestrator(
-      config.apiKey,
-      config.schema,
-      config.maxSteps,
-      config.model,
-      config.thinkingBudget,
-      config.requestDelayMs,
-      config.temperature,
-      config.systemPrompt,
-      IS_SILENT
-    )
+    const orchestrator = new Orchestrator({
+      geminiApiKey: config.apiKey,
+      isSilent: IS_SILENT,
+      maxSteps: config.maxSteps,
+      model: config.model,
+      requestDelayMs: config.requestDelayMs,
+      responseSchema: config.schema,
+      systemPrompt: config.systemPrompt,
+      temperature: config.temperature,
+      thinkingBudget: config.thinkingBudget
+    })
 
     await orchestrator.connect()
 

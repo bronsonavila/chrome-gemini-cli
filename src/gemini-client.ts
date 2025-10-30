@@ -9,6 +9,16 @@ export interface AgentResponse {
   type: 'answer' | 'function_call'
 }
 
+export interface GeminiClientConfig {
+  apiKey: string
+  model: string
+  requestDelayMs: number
+  responseSchema?: object
+  systemPrompt: string
+  temperature: number
+  thinkingBudget: number
+}
+
 /**
  * Gemini API Client for agentic browser automation.
  */
@@ -22,15 +32,9 @@ export class GeminiClient {
   private temperature: number
   private thinkingBudget: number
 
-  constructor(
-    apiKey: string,
-    responseSchema: object | undefined,
-    model: string,
-    thinkingBudget: number,
-    requestDelayMs: number,
-    temperature: number,
-    systemPrompt: string
-  ) {
+  constructor(config: GeminiClientConfig) {
+    const { apiKey, model, requestDelayMs, responseSchema, systemPrompt, temperature, thinkingBudget } = config
+
     if (!apiKey) throw new Error('Gemini API key is required. Set GEMINI_API_KEY environment variable.')
 
     this.googleGenAI = new GoogleGenAI({ apiKey })

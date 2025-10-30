@@ -12,6 +12,18 @@ interface MCPToolResult {
   content?: MCPResultContentItem[]
 }
 
+export interface OrchestratorConfig {
+  geminiApiKey: string
+  isSilent?: boolean
+  maxSteps: number
+  model: string
+  requestDelayMs: number
+  responseSchema?: object
+  systemPrompt: string
+  temperature: number
+  thinkingBudget: number
+}
+
 /**
  * Orchestrator that coordinates agentic browser automation with Gemini AI.
  */
@@ -23,28 +35,32 @@ export class Orchestrator {
   private maxSteps: number
   private mcpClient: MCPClient
 
-  constructor(
-    geminiApiKey: string,
-    responseSchema: object | undefined,
-    maxSteps: number,
-    model: string,
-    thinkingBudget: number,
-    requestDelayMs: number,
-    temperature: number,
-    systemPrompt: string,
-    isSilent: boolean = false
-  ) {
-    this.mcpClient = new MCPClient(isSilent)
-    this.geminiClient = new GeminiClient(
+  constructor(config: OrchestratorConfig) {
+    const {
       geminiApiKey,
-      responseSchema,
+      isSilent,
+      maxSteps,
       model,
-      thinkingBudget,
       requestDelayMs,
+      responseSchema,
+      systemPrompt,
       temperature,
-      systemPrompt
-    )
+      thinkingBudget
+    } = config
+
+    this.geminiClient = new GeminiClient({
+      apiKey: geminiApiKey,
+      model,
+      requestDelayMs,
+      responseSchema,
+      systemPrompt,
+      temperature,
+      thinkingBudget
+    })
+
     this.maxSteps = maxSteps
+
+    this.mcpClient = new MCPClient({ isSilent })
   }
 
   /**
@@ -163,8 +179,8 @@ export class Orchestrator {
     for (const functionCall of functionCalls) {
       const toolName = functionCall.name
       const args = functionCall.args || {}
-
       const argsString = Object.keys(args).length > 0 ? ` with args: ${JSON.stringify(args)}` : ''
+
       console.log(`\n→ Calling tool: ${toolName}${argsString}`)
 
       try {
