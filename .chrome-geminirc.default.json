@@ -4,7 +4,7 @@
 
   "model": "gemini-2.5-flash",
   "maxSteps": 30,
-  "thinkingBudget": 1024,
+  "thinkingBudget": 2048,
   "interactive": true,
   "requestDelayMs": 1000,
   "temperature": 0,
@@ -16,7 +16,7 @@
       "description": "A preset for fast, simple queries.",
       "interactive": false,
       "maxSteps": 20,
-      "thinkingBudget": 512
+      "thinkingBudget": 1024
     },
     "research": {
       "description": "A preset for complex research tasks requiring more steps.",
