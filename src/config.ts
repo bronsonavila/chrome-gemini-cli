@@ -9,6 +9,8 @@ const PROJECT_CONFIG_FILENAME = '.chrome-geminirc.json'
 
 // TYPES
 
+export type ThinkingLevel = 'high' | 'low' | 'medium' | 'minimal'
+
 interface BaseConfig {
   interactive?: boolean
   maxSteps?: number
@@ -17,7 +19,7 @@ interface BaseConfig {
   schema?: string
   systemPrompt?: string
   temperature?: number
-  thinkingBudget?: number
+  thinkingLevel?: ThinkingLevel
 }
 
 export type PresetConfig = BaseConfig
@@ -26,7 +28,7 @@ export interface UserConfig extends BaseConfig {
   presets?: Record<string, PresetConfig>
 }
 
-export interface ResolvedConfig extends Required<Omit<BaseConfig, 'schema'>> {
+export interface ResolvedConfig extends Required<Omit<BaseConfig, 'schema' | 'systemPrompt'>> {
   schema?: string
   systemPrompt?: string
 }
@@ -90,7 +92,7 @@ export function mergeConfigs(...configs: Array<null | UserConfig>): UserConfig {
 
     if (config.model !== undefined) merged.model = config.model
     if (config.maxSteps !== undefined) merged.maxSteps = config.maxSteps
-    if (config.thinkingBudget !== undefined) merged.thinkingBudget = config.thinkingBudget
+    if (config.thinkingLevel !== undefined) merged.thinkingLevel = config.thinkingLevel
     if (config.interactive !== undefined) merged.interactive = config.interactive
     if (config.requestDelayMs !== undefined) merged.requestDelayMs = config.requestDelayMs
     if (config.temperature !== undefined) merged.temperature = config.temperature
@@ -157,7 +159,7 @@ export function resolveConfig(options: { cliConfig: UserConfig; presetName?: str
     schema: merged.schema,
     systemPrompt: merged.systemPrompt,
     temperature: merged.temperature!,
-    thinkingBudget: merged.thinkingBudget!
+    thinkingLevel: merged.thinkingLevel!
   }
 
   return resolved

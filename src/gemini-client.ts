@@ -1,6 +1,27 @@
-import { FunctionCall, FunctionCallingConfigMode, FunctionDeclaration, GoogleGenAI, Part, Type } from '@google/genai'
+import {
+  FunctionCall,
+  FunctionCallingConfigMode,
+  FunctionDeclaration,
+  GoogleGenAI,
+  Part,
+  ThinkingLevel,
+  Type
+} from '@google/genai'
 import { sleep } from './utils.js'
+import type { ThinkingLevel as ThinkingLevelConfig } from './config.js'
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
+
+const CHARS_PER_TOKEN = 4 // Rough estimate: 1 token ≈ 4 characters.
+
+const MAX_CONTEXT_TOKENS = 200000 // Approximate token limit for context (leave headroom for response).
+
+// Map config string values to the SDK's enum values.
+const THINKING_LEVEL_MAP: Record<ThinkingLevelConfig, ThinkingLevel> = {
+  high: ThinkingLevel.HIGH,
+  low: ThinkingLevel.LOW,
+  medium: ThinkingLevel.MEDIUM,
+  minimal: ThinkingLevel.MINIMAL
+}
 
 export interface AgentResponse {
   answer?: object | string
@@ -16,7 +37,7 @@ export interface GeminiClientConfig {
   responseSchema?: object
   systemPrompt: string
   temperature: number
-  thinkingBudget: number
+  thinkingLevel: ThinkingLevelConfig
 }
 
 /**
@@ -30,10 +51,10 @@ export class GeminiClient {
   private responseSchema?: object
   private systemPrompt: string
   private temperature: number
-  private thinkingBudget: number
+  private thinkingLevel: ThinkingLevelConfig
 
   constructor(config: GeminiClientConfig) {
-    const { apiKey, model, requestDelayMs, responseSchema, systemPrompt, temperature, thinkingBudget } = config
+    const { apiKey, model, requestDelayMs, responseSchema, systemPrompt, temperature, thinkingLevel } = config
 
     if (!apiKey) throw new Error('Gemini API key is required. Set GEMINI_API_KEY environment variable.')
 
@@ -43,7 +64,7 @@ export class GeminiClient {
     this.responseSchema = responseSchema
     this.systemPrompt = systemPrompt
     this.temperature = temperature
-    this.thinkingBudget = thinkingBudget
+    this.thinkingLevel = thinkingLevel
   }
 
   /**
@@ -81,6 +102,8 @@ export class GeminiClient {
 
       const functions = this.convertMCPToolsToGeminiFunctions(availableTools)
 
+      this.trimHistory()
+
       await sleep(this.requestDelayMs)
 
       const response = await this.callGeminiWithTimeout(
@@ -88,7 +111,7 @@ export class GeminiClient {
           this.googleGenAI.models.generateContent({
             config: {
               temperature: this.temperature,
-              thinkingConfig: { thinkingBudget: this.thinkingBudget },
+              thinkingConfig: { thinkingLevel: THINKING_LEVEL_MAP[this.thinkingLevel] },
               toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.ANY } },
               tools: [{ functionDeclarations: functions }]
             },
@@ -218,5 +241,32 @@ export class GeminiClient {
     }
 
     return [...mcpFunctions, provideAnswerTool]
+  }
+
+  /**
+   * Estimate token count for the current conversation history.
+   */
+  private estimateTokenCount(): number {
+    let totalChars = 0
+
+    for (const message of this.conversationHistory) {
+      for (const part of message.parts) {
+        if ('text' in part && part.text) {
+          totalChars += part.text.length
+        }
+      }
+    }
+
+    return Math.ceil(totalChars / CHARS_PER_TOKEN)
+  }
+
+  /**
+   * Trim conversation history to stay under token limit.
+   * Keeps the first message (system prompt) and removes oldest messages after that.
+   */
+  private trimHistory(): void {
+    while (this.conversationHistory.length > 2 && this.estimateTokenCount() > MAX_CONTEXT_TOKENS) {
+      this.conversationHistory.splice(1, 1) // Remove the second message (oldest after system prompt).
+    }
   }
 }

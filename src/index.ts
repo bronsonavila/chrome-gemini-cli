@@ -3,7 +3,7 @@
 import * as fs from 'fs'
 import * as readline from 'readline'
 import * as dotenv from 'dotenv'
-import { resolveConfig, type UserConfig } from './config.js'
+import { resolveConfig, type ThinkingLevel, type UserConfig } from './config.js'
 import { Orchestrator } from './orchestrator.js'
 import { getTerminalWidth, parseCliArguments, printBox, printSeparator, validateEnvironmentVariable } from './utils.js'
 
@@ -70,7 +70,7 @@ interface ParsedConfig {
   schemaPath?: string
   systemPrompt: string
   temperature: number
-  thinkingBudget: number
+  thinkingLevel: ThinkingLevel
 }
 
 // INITIALIZATION
@@ -140,10 +140,7 @@ function displayBanner(config: ParsedConfig): void {
 
   console.log('Model:', config.model)
   console.log('Max Steps:', config.maxSteps)
-  console.log(
-    'Thinking Budget:',
-    config.thinkingBudget === -1 ? 'Dynamic' : config.thinkingBudget === 0 ? 'Disabled' : config.thinkingBudget
-  )
+  console.log('Thinking Level:', config.thinkingLevel)
 
   if (config.schema) console.log('Response Schema: Enabled')
 
@@ -226,6 +223,8 @@ async function main(): Promise<void> {
     // Build CLI config from flags.
     const cliConfig: UserConfig = {}
 
+    if (cliFlags.has('--thinkingLevel')) cliConfig.thinkingLevel = cliFlags.get('--thinkingLevel') as ThinkingLevel
+
     // Resolve configuration from all sources.
     const resolvedConfig = resolveConfig({ cliConfig, presetName: cliFlags.get('--preset') })
 
@@ -241,7 +240,7 @@ async function main(): Promise<void> {
       schemaPath: resolvedConfig.schema,
       systemPrompt: resolvedConfig.systemPrompt ? loadPrompt(resolvedConfig.systemPrompt) : '',
       temperature: resolvedConfig.temperature,
-      thinkingBudget: resolvedConfig.thinkingBudget
+      thinkingLevel: resolvedConfig.thinkingLevel
     }
 
     if (config.schemaPath) console.log(`Loaded response schema from: ${config.schemaPath}`)
@@ -257,7 +256,7 @@ async function main(): Promise<void> {
       responseSchema: config.schema,
       systemPrompt: config.systemPrompt,
       temperature: config.temperature,
-      thinkingBudget: config.thinkingBudget
+      thinkingLevel: config.thinkingLevel
     })
 
     await orchestrator.connect()

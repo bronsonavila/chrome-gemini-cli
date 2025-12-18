@@ -6,7 +6,7 @@ Built with **Gemini AI** and **Chrome DevTools MCP**.
 
 ## Demo
 
-> Go to Best Buy and search for '4K TV'. Next, apply the following filters: made by Sony, on sale, 65-74 inches, and rated 4 stars or higher. Then, set the max price to $1000. Finally, sort by 'Best Selling' and list only the results that can be added to the cart.
+> 1. Go to Target and search for 'bookshelf'. 2. Apply these filters: Color = White, Material = Wood. 3. Set max price to $80. 4. Show only items that are available for order pickup. 5. List the links for all results.
 
 <img src="assets/demo.gif" alt="Demo of Chrome Gemini CLI searching Best Buy for 4K TVs with filters" />
 
@@ -97,11 +97,11 @@ Create this in your project's root directory. It controls how the tool should be
 {
   "interactive": true,
   "maxSteps": 30,
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "requestDelayMs": 1000,
   "schema": "",
-  "temperature": 0,
-  "thinkingBudget": 1024,
+  "temperature": 1,
+  "thinkingLevel": "medium",
 
   "presets": {
     "quick": {
@@ -110,7 +110,7 @@ Create this in your project's root directory. It controls how the tool should be
     },
     "research": {
       "maxSteps": 50,
-      "thinkingBudget": 4096
+      "thinkingLevel": "high"
     }
   }
 }
@@ -120,12 +120,12 @@ Create this in your project's root directory. It controls how the tool should be
 
 - `interactive` - Enable interactive chat mode after task completion
 - `maxSteps` - Maximum number of agent steps before stopping
-- `model` - Gemini model to use (e.g., `gemini-2.5-flash`, `gemini-2.5-pro`)
+- `model` - Gemini model to use (e.g., `gemini-3-flash-preview`, `gemini-3-pro-preview`)
 - `requestDelayMs` - Delay in milliseconds between Gemini API calls to prevent rate limiting
 - `schema` - Path to a TypeScript schema file for structured JSON output
 - `systemPrompt` - Path to a markdown file with custom system prompt instructions
 - `temperature` - Model temperature for response randomness (0 = deterministic, 2 = maximum creativity)
-- `thinkingBudget` - Token budget for model thinking (0 = disabled, -1 = dynamic)
+- `thinkingLevel` - Reasoning depth for model thinking (`minimal`, `low`, `medium`, `high`)
 - `presets` - Named configurations that can be invoked with `--preset <name>`
 
 The tool comes with `.chrome-geminirc.default.json` that provides sensible defaults. You can override any values by creating `.chrome-geminirc.json`.

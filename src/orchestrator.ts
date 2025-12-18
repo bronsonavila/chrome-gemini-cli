@@ -1,6 +1,7 @@
 import { FunctionCall } from '@google/genai'
 import { GeminiClient } from './gemini-client.js'
 import { MCPClient } from './mcp-client.js'
+import type { ThinkingLevel } from './config.js'
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 
 interface MCPResultContentItem {
@@ -21,7 +22,7 @@ export interface OrchestratorConfig {
   responseSchema?: object
   systemPrompt: string
   temperature: number
-  thinkingBudget: number
+  thinkingLevel: ThinkingLevel
 }
 
 /**
@@ -45,7 +46,7 @@ export class Orchestrator {
       responseSchema,
       systemPrompt,
       temperature,
-      thinkingBudget
+      thinkingLevel
     } = config
 
     this.geminiClient = new GeminiClient({
@@ -55,7 +56,7 @@ export class Orchestrator {
       responseSchema,
       systemPrompt,
       temperature,
-      thinkingBudget
+      thinkingLevel
     })
 
     this.maxSteps = maxSteps
@@ -229,14 +230,17 @@ export class Orchestrator {
    * Format tool result into a string for Gemini to understand.
    */
   private formatToolResult(result: unknown): string {
-    if (typeof result === 'string') return result
+    const MAX_LENGTH = 20000 // Hardcoded limit
+    let formatted = ''
 
-    if (typeof result === 'object' && result !== null) {
+    if (typeof result === 'string') {
+      formatted = result
+    } else if (typeof result === 'object' && result !== null) {
       const resultObject = result as MCPToolResult
 
       // Handle MCP tool results with content array.
       if (resultObject.content && Array.isArray(resultObject.content)) {
-        return resultObject.content
+        formatted = resultObject.content
           .map((item: MCPResultContentItem) => {
             if (item.type === 'text') return item.text || ''
 
@@ -245,12 +249,18 @@ export class Orchestrator {
             return JSON.stringify(item)
           })
           .join('\n')
+      } else {
+        // Otherwise just stringify.
+        formatted = JSON.stringify(result, null, 2)
       }
-
-      // Otherwise just stringify.
-      return JSON.stringify(result, null, 2)
+    } else {
+      formatted = String(result)
     }
 
-    return String(result)
+    if (formatted.length > MAX_LENGTH) {
+      return formatted.slice(0, MAX_LENGTH) + `\n... [TRUNCATED due to size: ${formatted.length} chars]`
+    }
+
+    return formatted
   }
 }

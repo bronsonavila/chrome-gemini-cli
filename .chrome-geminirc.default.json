@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft-07/schema",
   "description": "Default configuration for Chrome Gemini CLI. Create .chrome-geminirc.json to override these defaults.",
 
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "maxSteps": 30,
-  "thinkingBudget": 2048,
+  "thinkingLevel": "medium",
   "interactive": true,
-  "requestDelayMs": 1000,
-  "temperature": 0,
+  "requestDelayMs": 0,
+  "temperature": 1,
   "schema": "",
   "systemPrompt": "prompts/system.default.md",
 
@@ -16,13 +16,13 @@
       "description": "A preset for fast, simple queries.",
       "interactive": false,
       "maxSteps": 20,
-      "thinkingBudget": 1024
+      "thinkingLevel": "low"
     },
     "research": {
       "description": "A preset for complex research tasks requiring more steps.",
       "interactive": false,
       "maxSteps": 50,
-      "thinkingBudget": 4096
+      "thinkingLevel": "high"
     },
     "price-check": {
       "description": "A preset for automated price checking with a specific schema.",
